@@ -15,42 +15,19 @@
  */
 package com.laudandjolynn.avf.cmd;
 
-import com.laudandjolynn.avf.VersionManager;
 
 /**
  * 抽象命令类
  * 
- * @author Laud
- * 
+ * @author: Laud
+ * @email: htd0324@gmail.com
+ * @date: 2014-02-19 上午10:55:37
+ * @copyright: avf.laudandjolynn.com
  */
 public abstract class AbstractCommand implements Command {
-	private VersionManager vm = null;
-
-	public AbstractCommand(VersionManager vm) {
-		this.vm = vm;
-	}
-
 	/**
-	 * 取得指令
-	 * 
-	 * @param appVersion
-	 * @param namespace
-	 * @param name
-	 * @return
+	 * 默认构造函数
 	 */
-	public Command getCommand(String appVersion, String namespace, String name) {
-		Command cmd = vm.getCommand(appVersion, namespace, name);
-		return cmd;
-	}
-
-	/**
-	 * 取得指令
-	 * 
-	 * @param name
-	 * @return
-	 */
-	public Command getCommand(String name) {
-		Command cmd = vm.getCommand(name);
-		return cmd;
+	public AbstractCommand() {
 	}
 }

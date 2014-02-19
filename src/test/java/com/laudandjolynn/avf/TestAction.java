@@ -23,7 +23,10 @@ public class TestAction extends TestCase {
 	}
 
 	public void testAction() {
-		Command command = vm.getCommand("1.0", null, "action1");
+		Command command = vm.getCommand("TestCommand");
+		assertNotNull(command);
+
+		command = vm.getCommand("1.0", null, "action1");
 		assertNotNull(command);
 
 		command = vm.getCommand("1.1", null, "action1");

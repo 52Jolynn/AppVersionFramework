@@ -56,9 +56,9 @@ public class VersionManager {
 	private final static Logger log = LoggerFactory
 			.getLogger(VersionManager.class);
 	private Application application = null;
-	private String[] VERSION_COLLECTION = null;
+	private String[] versions = null;
 	private String[] packages = null;
-	private final static ConcurrentMap<String, ActionCmdWrapper> COMMAND_COLLECTION = new ConcurrentHashMap<String, ActionCmdWrapper>();
+	private final ConcurrentMap<String, ActionCmdWrapper> COMMAND_COLLECTION = new ConcurrentHashMap<String, ActionCmdWrapper>();
 
 	/**
 	 * 构造函数
@@ -71,7 +71,7 @@ public class VersionManager {
 	 */
 	public VersionManager(Application app, String[] versions, String[] packages) {
 		this.application = app;
-		this.VERSION_COLLECTION = versions;
+		this.versions = versions;
 		this.packages = packages;
 		scanAnnotation();
 		takeChargeOfActionCmd();
@@ -95,24 +95,24 @@ public class VersionManager {
 		if (StringUtils.isEmpty(currentVersion)) {
 			return null;
 		}
-		int size = VERSION_COLLECTION == null ? 0 : VERSION_COLLECTION.length;
+		int size = versions == null ? 0 : versions.length;
 		if (size == 0) {
 			throw new AvfException("必须指定应用版本列表！");
 		}
 		String resultVersion = null;
 		for (int i = 0; i < size; i++) {
-			String version = VERSION_COLLECTION[i];
+			String version = versions[i];
 			if (version.equals(currentVersion)) {
 				int index = i - 1;
 				if (index >= 0) {
-					resultVersion = VERSION_COLLECTION[index];
+					resultVersion = versions[index];
 				}
 				break;
 			}
 		}
 		if (resultVersion == null) {
 			log.info("无法找到版本【" + currentVersion + "】的前一个版本，请确认其是否在应用版本列表【"
-					+ Arrays.deepToString(VERSION_COLLECTION) + "】中声明。");
+					+ Arrays.deepToString(versions) + "】中声明。");
 		}
 		return resultVersion;
 	}
@@ -329,8 +329,8 @@ public class VersionManager {
 						+ key + "】");
 				return new ActionCommand(wrapper);
 			}
-			return getCommand(name);
 		}
+		return null;
 	}
 
 	/**
@@ -340,14 +340,24 @@ public class VersionManager {
 	 * @return
 	 */
 	public Command getCommand(String name) {
-		String className = Command.class.getPackage().getName() + "." + name;
-		try {
-			Command cmd = (Command) ReflectionUtils.newInstance(className,
-					new Object[] { this }, this.getClass());
-			return cmd;
-		} catch (Exception e) {
-			log.error(e.getMessage(), e);
+		int len = packages == null ? 0 : packages.length;
+		if (len == 0) {
+			log.debug("could not find command: " + name);
 			return null;
 		}
+		for (String pname : packages) {
+			pname = pname.replace("/", ".");
+			String className = pname + "." + name;
+			try {
+				Command command = (Command) ReflectionUtils.newInstance(
+						className, new Object[0], new Class<?>[0]);
+				if (command != null) {
+					return command;
+				}
+			} catch (Exception e) {
+				continue;
+			}
+		}
+		return null;
 	}
 }
