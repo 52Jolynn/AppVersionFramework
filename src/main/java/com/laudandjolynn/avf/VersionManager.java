@@ -20,7 +20,6 @@ import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -46,7 +45,7 @@ import com.laudandjolynn.avf.ex.NonUniqueIdentity;
 import com.laudandjolynn.avf.utils.ReflectionUtils;
 
 /**
- * 版本管理器
+ * 版本管理器，支持多应用
  * 
  * @author: Laud
  * @email: htd0324@gmail.com
@@ -59,49 +58,23 @@ public class VersionManager {
 	private Application application = null;
 	private String[] VERSION_COLLECTION = null;
 	private String[] packages = null;
-	private volatile boolean inCharge = false;
 	private final static ConcurrentMap<String, ActionCmdWrapper> COMMAND_COLLECTION = new ConcurrentHashMap<String, ActionCmdWrapper>();
-	private final static Object LOCK = new Object();
 
 	/**
-	 * 单例获取版本管理器VersionManager实例
+	 * 构造函数
 	 * 
 	 * @param app
-	 * @return
-	 */
-	public static VersionManager getInstance(Application app) {
-		return VersionManagerSingletonHolder.vm;
-	}
-
-	private static class VersionManagerSingletonHolder {
-		private final static VersionManager vm = new VersionManager();
-	}
-
-	/**
-	 * 版本管理器接管
-	 * 
-	 * @param app
-	 *            应用
 	 * @param versions
-	 *            应用版本列表，从旧到新排列
+	 *            应用版本号列表，从旧到新
 	 * @param packages
-	 *            指定包列表
+	 *            包名列表，形如com/laudandjolynn/avf
 	 */
-	public void takeInCharge(Application app, String[] versions,
-			String[] packages) {
-		if (inCharge) {
-			return;
-		}
-		synchronized (LOCK) {
-			if (!inCharge) {
-				this.application = app;
-				this.VERSION_COLLECTION = versions;
-				this.packages = packages;
-				scanAnnotation();
-				takeChargeOfActionCmd();
-				inCharge = true;
-			}
-		}
+	public VersionManager(Application app, String[] versions, String[] packages) {
+		this.application = app;
+		this.VERSION_COLLECTION = versions;
+		this.packages = packages;
+		scanAnnotation();
+		takeChargeOfActionCmd();
 	}
 
 	public Application getApplication() {
@@ -119,7 +92,7 @@ public class VersionManager {
 	 * @return 如若不存在，则返回null
 	 */
 	private String getPreviousVersion(String currentVersion) {
-		if (currentVersion == null || "".equals(currentVersion)) {
+		if (StringUtils.isEmpty(currentVersion)) {
 			return null;
 		}
 		int size = VERSION_COLLECTION == null ? 0 : VERSION_COLLECTION.length;
@@ -232,7 +205,7 @@ public class VersionManager {
 		if (clazz.isAnnotationPresent(Action.class)) {
 			Action action = clazz.getAnnotation(Action.class);
 			Method[] methods = clazz.getMethods();
-			String appName = action.name();
+			String appName = application.getAppName();
 			String appVersion = action.version();
 			String globalRefVersion = action.refVersion();
 			for (Method method : methods) {
@@ -250,11 +223,10 @@ public class VersionManager {
 								+ "不唯一！"));
 					}
 
-					// 若有引用版本号，且与appVersion不同
-					String refAppVersion = define.refVersion();
-					if (!"".equals(refAppVersion)
-							&& !appVersion.equals(refAppVersion)) {
-						wrapper.setRefVerion(refAppVersion);
+					String localRefVersion = define.refVersion();
+					// 若声明了指令实现引用版本
+					if (StringUtils.isNotEmpty(localRefVersion)) {
+						wrapper.setRefVerion(localRefVersion);
 					} else if (StringUtils.isNotEmpty(globalRefVersion)
 							&& !globalRefVersion.equals(appVersion)) {
 						wrapper.setRefVerion(globalRefVersion);
@@ -278,15 +250,13 @@ public class VersionManager {
 		Collection<ActionCmdWrapper> collection = COMMAND_COLLECTION.values();
 		for (ActionCmdWrapper wrapper : collection) {
 			String version = wrapper.getVersion();
-			String refAppVersion = wrapper.getRefVerion();
-			if (!version.equals(refAppVersion)) {
-				String appName = wrapper.getAppName();
+			String refVersion = wrapper.getRefVerion();
+			if (!version.equals(refVersion)) {
 				String namespace = wrapper.getNamespace();
 				String actionName = wrapper.getActionName();
-
+				// 寻找最终的指令实现
 				ActionCmdWrapper refWrapper = getExactVersionCmdWrapper(
-						COMMAND_COLLECTION, appName, refAppVersion, namespace,
-						actionName);
+						refVersion, namespace, actionName);
 				if (refWrapper != null) {
 					wrapper.setActionType(refWrapper.getActionType());
 					wrapper.setInvokerName(refWrapper.getInvokerName());
@@ -308,19 +278,18 @@ public class VersionManager {
 	 * @param appVersion
 	 * @return
 	 */
-	private ActionCmdWrapper getExactVersionCmdWrapper(
-			final Map<String, ActionCmdWrapper> cmds, String appName,
-			String appVersion, String namespace, String name) {
+	private ActionCmdWrapper getExactVersionCmdWrapper(String appVersion,
+			String namespace, String name) {
+		String appName = application.getAppName();
 		ActionCmdWrapper wrapper = new ActionCmdWrapper(appName, appVersion,
 				namespace, name);
 		String key = wrapper.getKey();
-		if (cmds.containsKey(key)) {
-			return cmds.get(key);
+		if (COMMAND_COLLECTION.containsKey(key)) {
+			return COMMAND_COLLECTION.get(key);
 		} else {
 			String preAppVersion = getPreviousVersion(appVersion);
 			if (StringUtils.isNotEmpty(preAppVersion)) {
-				return getExactVersionCmdWrapper(cmds, appName, preAppVersion,
-						namespace, name);
+				return getExactVersionCmdWrapper(preAppVersion, namespace, name);
 			}
 			return null;
 		}
@@ -329,8 +298,6 @@ public class VersionManager {
 	/**
 	 * 取得指定名称的命令
 	 * 
-	 * @param appName
-	 *            应用名称
 	 * @param appVersion
 	 *            应用版本号
 	 * @param namespace
@@ -339,9 +306,9 @@ public class VersionManager {
 	 *            指令名称
 	 * @return
 	 */
-	public Command getCommand(String appName, String appVersion,
-			String namespace, String name) {
+	public Command getCommand(String appVersion, String namespace, String name) {
 		// 取得对应的指令处理对象
+		String appName = application.getAppName();
 		ActionCmdWrapper wrapper = new ActionCmdWrapper(appName, appVersion,
 				namespace, name);
 		String key = wrapper.getKey();
@@ -350,8 +317,8 @@ public class VersionManager {
 			return new ActionCommand(wrapper);
 		} else {
 			// 若没有提供对应版本实现的指令，则尝试递归搜索其前一个版本，直至找到该指令的实现，否则返回空
-			ActionCmdWrapper refWrapper = getExactVersionCmdWrapper(
-					COMMAND_COLLECTION, appName, appVersion, namespace, name);
+			ActionCmdWrapper refWrapper = getExactVersionCmdWrapper(appVersion,
+					namespace, name);
 			if (refWrapper != null) {
 				// 加进指令集合中，再次调用时直接取用
 				wrapper.setActionType(refWrapper.getActionType());

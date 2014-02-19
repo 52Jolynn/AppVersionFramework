@@ -24,25 +24,22 @@ import com.laudandjolynn.avf.VersionManager;
  * 
  */
 public abstract class AbstractCommand implements Command {
-	private VersionManager appService = null;
+	private VersionManager vm = null;
 
-	public AbstractCommand(VersionManager appService) {
-		this.appService = appService;
+	public AbstractCommand(VersionManager vm) {
+		this.vm = vm;
 	}
 
 	/**
 	 * 取得指令
 	 * 
-	 * @param appName
 	 * @param appVersion
 	 * @param namespace
 	 * @param name
 	 * @return
 	 */
-	public Command getCommand(String appName, String appVersion,
-			String namespace, String name) {
-		Command cmd = appService.getCommand(appName, appVersion, namespace,
-				name);
+	public Command getCommand(String appVersion, String namespace, String name) {
+		Command cmd = vm.getCommand(appVersion, namespace, name);
 		return cmd;
 	}
 
@@ -53,7 +50,7 @@ public abstract class AbstractCommand implements Command {
 	 * @return
 	 */
 	public Command getCommand(String name) {
-		Command cmd = appService.getCommand(name);
+		Command cmd = vm.getCommand(name);
 		return cmd;
 	}
 }

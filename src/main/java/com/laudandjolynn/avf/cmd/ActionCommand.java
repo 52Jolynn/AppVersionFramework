@@ -140,4 +140,9 @@ public class ActionCommand implements Command {
 			}
 		}
 	}
+
+	@Override
+	public String toString() {
+		return "[ActionCommand: " + actionCmdWrapper.toString() + "]";
+	}
 }
