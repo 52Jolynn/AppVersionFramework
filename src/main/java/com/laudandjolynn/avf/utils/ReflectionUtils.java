@@ -24,7 +24,8 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.laudandjolynn.avf.ex.ExceptionFactory;
 
@@ -35,7 +36,7 @@ import com.laudandjolynn.avf.ex.ExceptionFactory;
  * @copyright: avf.laudandjolynn.com
  */
 public class ReflectionUtils {
-	private static Logger log = Logger.getLogger(ReflectionUtils.class);
+	private static Logger log = LoggerFactory.getLogger(ReflectionUtils.class);
 
 	/**
 	 * @param clazz
