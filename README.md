@@ -8,7 +8,7 @@ AppVersionFramework
 2、应用的需求实现，可以有两种方式，一种是直接继承AbstractCommand，重写execute方法；二是实现BaseAction类，使用annotation标记命令信息。
 
 示例1：
-<code>
+```java
 package com.laudandjolynn.avf.action1;
 
 import com.laudandjolynn.avf.cmd.AbstractCommand;
@@ -30,8 +30,10 @@ public class TestCommand extends AbstractCommand {
 	}
 
 }
+```
 
 示例2：
+```java
 package com.laudandjolynn.avf.action1;
 
 import com.laudandjolynn.avf.BaseAction;
@@ -84,11 +86,13 @@ public class Action2 extends BaseAction {
 	public void action2() {
 	}
 }
+```
 
 VersionManager构造方式：
+```java
 Application app = new Application("test", "1.0");
 String[] versions = new String[] { "1.0", "1.1" };
 String[] packages = new String[] { "com/laudandjolynn/avf/action1",
 				"com/laudandjolynn/avf/action2" };
 VersionManager vm = new VersionManager(app, versions, packages);
-</code>
+```
