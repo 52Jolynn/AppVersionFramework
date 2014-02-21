@@ -5,7 +5,7 @@ AppVersionFramework
 
 使用说明：
 1、通过构建VersionManager类实现版本管理。
-2、应用的需求实现，可以有两种方式，一种是直接继承AbstractCommand，重写execute方法；二是实现BaseAction类，使用annotation标记命令信息。
+2、应用的需求实现，可以有两种方式，一种是直接继承AbstractCommand，重写execute方法，但使用这种方法不支持版本号，只能通过名称找到命令；二是实现BaseAction类，使用annotation标记命令信息。
 
 示例1：
 ```java
@@ -88,11 +88,15 @@ public class Action2 extends BaseAction {
 }
 ```
 
-VersionManager构造方式：
+VersionManager构造方式及使用：
 ```java
 Application app = new Application("test", "1.0");
 String[] versions = new String[] { "1.0", "1.1" };
 String[] packages = new String[] { "com/laudandjolynn/avf/action1",
 				"com/laudandjolynn/avf/action2" };
 VersionManager vm = new VersionManager(app, versions, packages);
+Command command = vm.getCommand("1.0", null, "action1");
+command = vm.getCommand("1.1", null, "action1");
+command = vm.getCommand("1.0", "test_namespace2", "action2");
+command = vm.getCommand("1.1", "test_namespace2", "action2");
 ```
