@@ -308,6 +308,19 @@ public class VersionManager {
 	 * 
 	 * @param appVersion
 	 *            应用版本号
+	 * @param name
+	 *            指令名称
+	 * @return
+	 */
+	public Command getCommand(String appVersion, String name) {
+		return getCommand(appVersion, null, name);
+	}
+
+	/**
+	 * 取得指定名称的命令
+	 * 
+	 * @param appVersion
+	 *            应用版本号
 	 * @param namespace
 	 *            指令命名空间
 	 * @param name
@@ -348,6 +361,10 @@ public class VersionManager {
 	 * @return
 	 */
 	public Command getCommand(String name) {
+		Command cmd = getCommand(versions[versions.length - 1], name);
+		if (cmd != null) {
+			return cmd;
+		}
 		int len = packages == null ? 0 : packages.length;
 		if (len == 0) {
 			log.debug("could not find command: " + name);

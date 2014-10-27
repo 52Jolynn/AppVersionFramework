@@ -26,6 +26,9 @@ public class TestAction extends TestCase {
 		Command command = vm.getCommand("TestCommand");
 		assertNotNull(command);
 
+		command = vm.getCommand("action1");
+		assertNotNull(command);
+
 		command = vm.getCommand("1.0", null, "action1");
 		assertNotNull(command);
 

@@ -30,5 +30,5 @@ public interface Command {
 	 *            请求参数
 	 * @return
 	 */
-	public Object execute(Parameter parameter);
+	public Object execute(Object parameter);
 }

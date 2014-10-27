@@ -16,7 +16,6 @@
 package com.laudandjolynn.avf;
 
 import com.laudandjolynn.avf.cmd.Command;
-import com.laudandjolynn.avf.cmd.Parameter;
 
 /**
  * @author: Laud
@@ -25,7 +24,7 @@ import com.laudandjolynn.avf.cmd.Parameter;
  * @copyright: avf.laudandjolynn.com
  */
 public class BaseAction {
-	protected Parameter parameter;
+	protected Object parameter;
 	protected Command command;
 
 	public BaseAction() {
@@ -38,7 +37,7 @@ public class BaseAction {
 	 * @param parameter
 	 *            请求参数
 	 */
-	public BaseAction(Command command, Parameter parameter) {
+	public BaseAction(Command command, Object parameter) {
 		this.command = command;
 		this.parameter = parameter;
 	}
@@ -48,7 +47,7 @@ public class BaseAction {
 	 * 
 	 * @return
 	 */
-	public Parameter getParameter() {
+	public Object getParameter() {
 		return parameter;
 	}
 
@@ -57,7 +56,7 @@ public class BaseAction {
 	 * 
 	 * @param parameter
 	 */
-	public final void setParameter(Parameter parameter) {
+	public final void setParameter(Object parameter) {
 		this.parameter = parameter;
 	}
 

@@ -1,7 +1,6 @@
 package com.laudandjolynn.avf.action1;
 
 import com.laudandjolynn.avf.cmd.AbstractCommand;
-import com.laudandjolynn.avf.cmd.Parameter;
 
 /**
  * @author: Laud
@@ -13,7 +12,7 @@ import com.laudandjolynn.avf.cmd.Parameter;
 public class TestCommand extends AbstractCommand {
 
 	@Override
-	public Object execute(Parameter parameter) {
+	public Object execute(Object parameter) {
 		return null;
 	}
 

@@ -70,7 +70,7 @@ public class ActionCommand implements Command {
 	}
 
 	@Override
-	public Object execute(Parameter parameter) {
+	public Object execute(Object parameter) {
 		Class<?> clazz = actionCmdWrapper.getActionType();
 		Object obj = ReflectionUtils.newInstance(clazz, new Object[] {},
 				new Class<?>[] {});

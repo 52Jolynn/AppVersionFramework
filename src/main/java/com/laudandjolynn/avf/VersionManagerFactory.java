@@ -1,11 +1,3 @@
-package com.laudandjolynn.avf;
-
-/**
- * @author: Laud
- * @email: htd0324@gmail.com
- * @date: 2014年10月27日 上午9:39:07
- * @copyright: www.laudandjolynn.com
- */
 /*
  * Copyright 2007-2009 the original author or authors.
  *
@@ -20,6 +12,14 @@ package com.laudandjolynn.avf;
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ */
+package com.laudandjolynn.avf;
+
+/**
+ * @author: Laud
+ * @email: htd0324@gmail.com
+ * @date: 2014年10月27日 上午9:39:07
+ * @copyright: www.laudandjolynn.com
  */
 public class VersionManagerFactory {
 	/**
