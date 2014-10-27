@@ -32,7 +32,7 @@ import com.laudandjolynn.avf.ex.ExceptionFactory;
 /**
  * @author: Laud
  * @email: htd0324@gmail.com
- * @date: 2012-9-24 下午6:28:29
+ * @date: 2014-02-24 下午6:28:29
  * @copyright: avf.laudandjolynn.com
  */
 public class ReflectionUtils {

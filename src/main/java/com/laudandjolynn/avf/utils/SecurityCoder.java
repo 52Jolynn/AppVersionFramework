@@ -28,10 +28,10 @@ import javax.crypto.spec.SecretKeySpec;
 import org.apache.commons.codec.binary.Base64;
 
 /**
- * 加/解密类
- * 
- * @author Laud
- * @date 2012-2-29
+ * @author: Laud
+ * @email: htd0324@gmail.com
+ * @date: 2014-02-24 下午6:28:29
+ * @copyright: avf.laudandjolynn.com
  */
 public final class SecurityCoder {
 	private final static String MD5 = "MD5";

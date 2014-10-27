@@ -18,8 +18,8 @@ package com.laudandjolynn.avf.ex;
 /**
  * @author: Laud
  * @email: htd0324@gmail.com
- * @date: 2012-12-28 下午4:42:36
- * @copyright: armisi.cn
+ * @date: 2014-02-19 下午4:42:36
+ * @copyright: www.laudandjolynn.com
  */
 public class AvfException extends RuntimeException {
 	private static final long serialVersionUID = 5587815705327896167L;

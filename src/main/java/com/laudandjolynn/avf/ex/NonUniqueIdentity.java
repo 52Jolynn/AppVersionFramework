@@ -18,8 +18,8 @@ package com.laudandjolynn.avf.ex;
 /**
  * @author: Laud
  * @email: htd0324@gmail.com
- * @date: 2012-10-22 下午6:14:14
- * @copyright: armisi.cn
+ * @date: 2014-02-19 下午6:14:14
+ * @copyright: www.laudandjolynn.com
  */
 public class NonUniqueIdentity extends RuntimeException {
 	private static final long serialVersionUID = -6887409453281025959L;
