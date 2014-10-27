@@ -57,7 +57,7 @@ public class BaseAction {
 	 * 
 	 * @param parameter
 	 */
-	public void setParameter(Parameter parameter) {
+	public final void setParameter(Parameter parameter) {
 		this.parameter = parameter;
 	}
 
@@ -75,7 +75,7 @@ public class BaseAction {
 	 * 
 	 * @param command
 	 */
-	public void setCommand(Command command) {
+	public final void setCommand(Command command) {
 		this.command = command;
 	}
 }
