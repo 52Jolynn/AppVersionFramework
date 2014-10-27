@@ -69,10 +69,18 @@ public class VersionManager {
 	 * @param packages
 	 *            包名列表，形如com/laudandjolynn/avf
 	 */
-	public VersionManager(Application app, String[] versions, String[] packages) {
+	protected VersionManager(Application app, String[] versions,
+			String[] packages) {
 		this.application = app;
 		this.versions = versions;
 		this.packages = packages;
+		init();
+	}
+
+	/**
+	 * 初始化
+	 */
+	private void init() {
 		scanAnnotation();
 		takeChargeOfActionCmd();
 	}
