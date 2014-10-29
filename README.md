@@ -95,9 +95,7 @@ VersionManager构造方式及使用：
 ```java
 Application app = new Application("test", "1.0");
 String[] versions = new String[] { "1.0", "1.1" };
-String[] packages = new String[] { "com/laudandjolynn/avf/action1",
-				"com/laudandjolynn/avf/action2" };
-VersionManager vm = new VersionManager(app, versions, packages);
+VersionManager vm = new VersionManager(app, versions);
 Command command = vm.getCommand("1.0", null, "action1");
 command = vm.getCommand("1.1", null, "action1");
 command = vm.getCommand("1.0", "test_namespace2", "action2");
