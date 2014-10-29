@@ -86,14 +86,22 @@ public class VersionManager {
 		this.application = app;
 		this.versions = versions;
 		this.includeJars = includeJars;
-		this.init();
+		this.init(null);
+	}
+
+	protected VersionManager(Application app, String[] versions,
+			String[] packages, boolean includeJars) {
+		this.application = app;
+		this.versions = versions;
+		this.includeJars = includeJars;
+		this.init(packages);
 	}
 
 	/**
 	 * 初始化
 	 */
-	private void init() {
-		this.scan();
+	private void init(String[] packages) {
+		this.scan(packages);
 		this.charge();
 	}
 
@@ -140,7 +148,7 @@ public class VersionManager {
 	/**
 	 * 扫描注解
 	 */
-	private void scan() {
+	private void scan(final String[] packages) {
 		ClassScanner scanner = new ClassScanner() {
 
 			@Override
@@ -154,6 +162,14 @@ public class VersionManager {
 					return false;
 				}
 				return super.acceptJar(jarFile);
+			}
+
+			@Override
+			protected boolean acceptEntry(String entryName) {
+				if (packages == null) {
+					return true;
+				}
+				return StringUtil.startsWithOne(entryName, packages) != -1;
 			}
 		};
 

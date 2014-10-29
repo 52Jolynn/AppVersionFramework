@@ -17,7 +17,9 @@ public class TestAction extends TestCase {
 	protected void setUp() throws Exception {
 		Application app = new Application("test", "1.0");
 		String[] versions = new String[] { "1.0", "1.1" };
-		this.vm = new VersionManager(app, versions);
+		this.vm = new VersionManager(app, versions, new String[] {
+				"com.laudandjolynn.avf.action1",
+				"com.laudandjolynn.avf.action2" }, false);
 	}
 
 	public void testAction() {

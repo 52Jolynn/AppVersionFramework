@@ -37,4 +37,22 @@ public class VersionManagerFactory {
 			String[] versions, boolean includeJars) {
 		return new VersionManager(app, versions, includeJars);
 	}
+
+	/**
+	 * 获取VersionManager
+	 * 
+	 * @param app
+	 * @param versions
+	 *            应用版本号列表，从旧到新
+	 * @param packages
+	 *            需要版本管理的包名列表，如com.laudandjolynn.avf.action1
+	 * @param includeJars
+	 *            jar包是否有需要版本管理的指令
+	 * 
+	 * @return
+	 */
+	public static VersionManager getVersionManager(Application app,
+			String[] versions, String[] packages, boolean includeJars) {
+		return new VersionManager(app, versions, packages, includeJars);
+	}
 }
