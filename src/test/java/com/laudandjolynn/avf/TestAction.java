@@ -1,8 +1,8 @@
 package com.laudandjolynn.avf;
 
-import com.laudandjolynn.avf.cmd.Command;
-
 import junit.framework.TestCase;
+
+import com.laudandjolynn.avf.cmd.Command;
 
 /**
  * @author: Laud
@@ -17,9 +17,7 @@ public class TestAction extends TestCase {
 	protected void setUp() throws Exception {
 		Application app = new Application("test", "1.0");
 		String[] versions = new String[] { "1.0", "1.1" };
-		String[] packages = new String[] { "com/laudandjolynn/avf/action1",
-				"com/laudandjolynn/avf/action2" };
-		this.vm = new VersionManager(app, versions, packages);
+		this.vm = new VersionManager(app, versions);
 	}
 
 	public void testAction() {

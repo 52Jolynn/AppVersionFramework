@@ -15,24 +15,22 @@
  */
 package com.laudandjolynn.avf;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import net.paoding.rose.scanning.vfs.FileObject;
-import net.paoding.rose.scanning.vfs.FileSystemManager;
-import net.paoding.rose.scanning.vfs.FileType;
+import jodd.io.findfile.ClassScanner;
+import jodd.util.ClassLoaderUtil;
+import jodd.util.StringUtil;
 
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.core.io.support.ResourcePatternResolver;
 
 import com.laudandjolynn.avf.annotation.Action;
 import com.laudandjolynn.avf.annotation.ActionCmdDefine;
@@ -57,32 +55,46 @@ public class VersionManager {
 			.getLogger(VersionManager.class);
 	private Application application = null;
 	private String[] versions = null;
-	private String[] packages = null;
+	private Set<String> packages = null;
+	private boolean includeJars = false;
 	private final ConcurrentMap<String, ActionCmdWrapper> COMMAND_COLLECTION = new ConcurrentHashMap<String, ActionCmdWrapper>();
 
 	/**
 	 * 构造函数
 	 * 
 	 * @param app
+	 *            应用对象
 	 * @param versions
 	 *            应用版本号列表，从旧到新
-	 * @param packages
-	 *            包名列表，形如com/laudandjolynn/avf
+	 */
+	protected VersionManager(Application app, String[] versions) {
+		this(app, versions, false);
+	}
+
+	/**
+	 * 构造函数
+	 * 
+	 * @param app
+	 *            应用对象
+	 * @param versions
+	 *            应用版本号列表，从旧到新
+	 * @param includeJars
+	 *            jar包是否有需要版本管理的指令
 	 */
 	protected VersionManager(Application app, String[] versions,
-			String[] packages) {
+			boolean includeJars) {
 		this.application = app;
 		this.versions = versions;
-		this.packages = packages;
-		init();
+		this.includeJars = includeJars;
+		this.init();
 	}
 
 	/**
 	 * 初始化
 	 */
 	private void init() {
-		scanAnnotation();
-		takeChargeOfActionCmd();
+		this.scan();
+		this.charge();
 	}
 
 	public Application getApplication() {
@@ -100,7 +112,7 @@ public class VersionManager {
 	 * @return 如若不存在，则返回null
 	 */
 	private String getPreviousVersion(String currentVersion) {
-		if (StringUtils.isEmpty(currentVersion)) {
+		if (StringUtil.isEmpty(currentVersion)) {
 			return null;
 		}
 		int size = versions == null ? 0 : versions.length;
@@ -128,133 +140,90 @@ public class VersionManager {
 	/**
 	 * 扫描注解
 	 */
-	private void scanAnnotation() {
-		ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
-		Resource[] resources = null;
-		int size = packages == null ? 0 : packages.length;
-		if (size == 0) {
-			return;
-		}
-		for (int i = 0; i < size; i++) {
-			String BASE_PACKAGE = packages[i];
-			try {
-				resources = resourcePatternResolver.getResources("classpath*:"
-						+ BASE_PACKAGE);
-			} catch (IOException e) {
-				log.error(e.getMessage(), e);
-				throw ExceptionFactory.wrapException(
-						"find annotation file error！", e);
+	private void scan() {
+		ClassScanner scanner = new ClassScanner() {
+
+			@Override
+			protected void onEntry(EntryData arg0) throws Exception {
+				checkAnnotation(arg0.getName());
 			}
 
-			FileSystemManager fsm = new FileSystemManager();
-			for (Resource res : resources) {
-				try {
-					URI uri = res.getURI();
-					FileObject rootObject = fsm.resolveFile(uri.toString());
-					checkClasses(rootObject, rootObject, BASE_PACKAGE);
-				} catch (IOException e) {
-					log.error(e.getMessage());
-					throw ExceptionFactory.wrapException("解析类文件出错！", e);
+			@Override
+			protected boolean acceptJar(File jarFile) {
+				if (!includeJars) {
+					return false;
 				}
+				return super.acceptJar(jarFile);
 			}
-		}
-	}
+		};
 
-	/**
-	 * 检查指令
-	 * 
-	 * @param fileObject
-	 */
-	private void checkClasses(FileObject rootObject, FileObject fileObject,
-			String BASE_PACKAGE) throws IOException {
-		FileObject[] children = fileObject.getChildren();
-		for (FileObject child : children) {
-			FileType fileType = child.getType();
-			boolean hasChildren = fileType.hasChildren();
-			boolean hasContent = fileType.hasContent();
-			if (hasChildren) {
-				checkClasses(rootObject, child, BASE_PACKAGE);
-			} else if (hasContent && !hasChildren) {
-				checkAnnotation(rootObject, fileObject, child, BASE_PACKAGE);
-			}
-		}
+		File[] files = ClassLoaderUtil.getDefaultClasspath(ClassLoaderUtil
+				.getDefaultClassLoader());
+		scanner.setIncludeAllEntries(true);
+		scanner.setIgnoreException(true);
+		scanner.scan(files);
 	}
 
 	/**
 	 * 
-	 * @param rootObject
-	 *            根目录
-	 * @param currentObject
-	 *            当前目录
-	 * @param resource
-	 *            当前资源
-	 * @param BASE_PACKAGE
-	 *            包名
+	 * @param className
 	 * @throws IOException
 	 */
-	private void checkAnnotation(FileObject rootObject,
-			FileObject currentObject, FileObject resource, String BASE_PACKAGE)
-			throws IOException {
-		String className = rootObject.getName().getRelativeName(
-				resource.getName());
-		if (!className.endsWith(".class")) {
+	private void checkAnnotation(String className)
+			throws ClassNotFoundException {
+		Class<?> clazz = null;
+		clazz = Class.forName(className);
+		if (!clazz.isAnnotationPresent(Action.class)) {
 			return;
 		}
-		className = StringUtils.removeEnd(className, ".class");
-		className = BASE_PACKAGE + "/" + className;
-		className = className.replace('/', '.');
-		Class<?> clazz = null;
-		try {
-			clazz = Class.forName(className);
-		} catch (ClassNotFoundException e) {
-			log.error(e.getMessage());
-			throw ExceptionFactory.wrapException("", e);
+		if (packages == null) {
+			packages = new HashSet<String>();
 		}
-		if (clazz.isAnnotationPresent(Action.class)) {
-			Action action = clazz.getAnnotation(Action.class);
-			Method[] methods = clazz.getMethods();
-			String appName = application.getAppName();
-			String appVersion = action.version();
-			String globalRefVersion = action.refVersion();
-			for (Method method : methods) {
-				if (method.isAnnotationPresent(ActionCmdDefine.class)) {
-					ActionCmdDefine define = method
-							.getAnnotation(ActionCmdDefine.class);
-					String name = define.name();
-					String namespace = define.namespace();
-					ActionCmdWrapper wrapper = new ActionCmdWrapper(appName,
-							appVersion, namespace, name);
-					String key = wrapper.getKey();
-					if (COMMAND_COLLECTION.containsKey(key)) {
-						throw ExceptionFactory.wrapException("重复声明的命令："
-								+ wrapper.toString(), new NonUniqueIdentity(key
-								+ "不唯一！"));
-					}
-
-					String localRefVersion = define.refVersion();
-					// 若声明了指令实现引用版本
-					if (StringUtils.isNotEmpty(localRefVersion)) {
-						wrapper.setRefVerion(localRefVersion);
-					} else if (StringUtils.isNotEmpty(globalRefVersion)
-							&& !globalRefVersion.equals(appVersion)) {
-						wrapper.setRefVerion(globalRefVersion);
-					}
-					String invokerName = method.getName();
-					wrapper.setInvokerName(invokerName);
-					wrapper.setActionType(clazz);
-					log.debug("found command：actionName【" + action.name()
-							+ "】, command【" + wrapper.toString() + "】, key【"
-							+ key + "】");
-					COMMAND_COLLECTION.put(key, wrapper);
-				}
+		packages.add(clazz.getPackage().getName());
+		Action action = clazz.getAnnotation(Action.class);
+		Method[] methods = clazz.getMethods();
+		String appName = application.getAppName();
+		String appVersion = action.version();
+		String globalRefVersion = action.refVersion();
+		for (Method method : methods) {
+			if (!method.isAnnotationPresent(ActionCmdDefine.class)) {
+				continue;
 			}
+			ActionCmdDefine define = method
+					.getAnnotation(ActionCmdDefine.class);
+			String name = define.name();
+			String namespace = define.namespace();
+			ActionCmdWrapper wrapper = new ActionCmdWrapper(appName,
+					appVersion, namespace, name);
+			String key = wrapper.getKey();
+			if (COMMAND_COLLECTION.containsKey(key)) {
+				throw ExceptionFactory.wrapException(
+						"重复声明的命令：" + wrapper.toString(), new NonUniqueIdentity(
+								key + "不唯一！"));
+			}
+
+			String localRefVersion = define.refVersion();
+			// 若声明了指令实现引用版本
+			if (StringUtil.isNotEmpty(localRefVersion)) {
+				wrapper.setRefVerion(localRefVersion);
+			} else if (StringUtil.isNotEmpty(globalRefVersion)
+					&& !globalRefVersion.equals(appVersion)) {
+				wrapper.setRefVerion(globalRefVersion);
+			}
+			String invokerName = method.getName();
+			wrapper.setInvokerName(invokerName);
+			wrapper.setActionType(clazz);
+			log.debug("found command：actionName【" + action.name()
+					+ "】, command【" + wrapper.toString() + "】, key【" + key
+					+ "】");
+			COMMAND_COLLECTION.put(key, wrapper);
 		}
 	}
 
 	/**
 	 * 查找指令的引用实现
 	 */
-	private void takeChargeOfActionCmd() {
+	private void charge() {
 		Collection<ActionCmdWrapper> collection = COMMAND_COLLECTION.values();
 		for (ActionCmdWrapper wrapper : collection) {
 			String version = wrapper.getVersion();
@@ -296,7 +265,7 @@ public class VersionManager {
 			return COMMAND_COLLECTION.get(key);
 		} else {
 			String preAppVersion = getPreviousVersion(appVersion);
-			if (StringUtils.isNotEmpty(preAppVersion)) {
+			if (StringUtil.isNotEmpty(preAppVersion)) {
 				return getExactVersionCmdWrapper(preAppVersion, namespace, name);
 			}
 			return null;
@@ -365,11 +334,6 @@ public class VersionManager {
 		if (cmd != null) {
 			return cmd;
 		}
-		int len = packages == null ? 0 : packages.length;
-		if (len == 0) {
-			log.debug("could not find command: " + name);
-			return null;
-		}
 		for (String pname : packages) {
 			pname = pname.replace("/", ".");
 			String className = pname + "." + name;
@@ -383,6 +347,7 @@ public class VersionManager {
 				continue;
 			}
 		}
+		log.debug("could not find command: " + name);
 		return null;
 	}
 }
