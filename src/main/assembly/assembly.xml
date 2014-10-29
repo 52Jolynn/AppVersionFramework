@@ -1,0 +1,20 @@
+<assembly>
+	<id>bin</id>
+	<formats>
+		<format>jar</format>
+	</formats>
+	<dependencySets>
+		<dependencySet>
+			<useProjectArtifact>true</useProjectArtifact>
+			<outputDirectory>lib</outputDirectory>
+		</dependencySet>
+	</dependencySets>
+	<fileSets>
+		<fileSet>
+			<outputDirectory>/</outputDirectory>
+			<includes>
+				<include>MANIFEST.MF</include>
+			</includes>
+		</fileSet>
+	</fileSets>
+</assembly>
