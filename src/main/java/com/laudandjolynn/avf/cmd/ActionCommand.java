@@ -78,7 +78,7 @@ public class ActionCommand implements Command {
 
 		// 设置请求指令参数
 		Method setRequestParams = ReflectionUtils.findMethod(BaseAction.class,
-				"setParameter", new Object[0]);
+				"setParameter", new Object[] { Object.class });
 		try {
 			setRequestParams.invoke(obj, parameter);
 		} catch (IllegalAccessException e) {
