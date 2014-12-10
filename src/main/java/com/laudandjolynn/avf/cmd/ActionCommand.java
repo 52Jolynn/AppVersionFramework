@@ -121,7 +121,7 @@ public class ActionCommand implements Command {
 				actionCmdWrapper.getInvokerName(), new Object[0]);
 		log.info("执行指令：" + cmdDesc);
 		try {
-			return method.invoke(obj, new Object[0]).toString();
+			return method.invoke(obj, new Object[0]);
 		} catch (IllegalAccessException e) {
 			log.error(e.getMessage(), e);
 			throw ExceptionFactory.wrapException(
