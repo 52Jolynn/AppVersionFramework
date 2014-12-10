@@ -21,6 +21,7 @@ import java.lang.reflect.Method;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.laudandjolynn.avf.BaseAction;
 import com.laudandjolynn.avf.ex.AvfException;
 import com.laudandjolynn.avf.ex.ExceptionFactory;
 import com.laudandjolynn.avf.utils.ReflectionUtils;
@@ -76,8 +77,8 @@ public class ActionCommand implements Command {
 				new Class<?>[] {});
 
 		// 设置请求指令参数
-		Method setRequestParams = ReflectionUtils.findMethod(clazz,
-				"setParameter", parameter);
+		Method setRequestParams = ReflectionUtils.findMethod(BaseAction.class,
+				"setParameter", new Object[0]);
 		try {
 			setRequestParams.invoke(obj, parameter);
 		} catch (IllegalAccessException e) {
