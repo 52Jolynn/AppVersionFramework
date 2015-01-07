@@ -1,6 +1,7 @@
 package com.laudandjolynn.avf.action1;
 
 import com.laudandjolynn.avf.cmd.AbstractCommand;
+import com.laudandjolynn.avf.ex.AvfException;
 
 /**
  * @author: Laud
@@ -12,7 +13,7 @@ import com.laudandjolynn.avf.cmd.AbstractCommand;
 public class TestCommand extends AbstractCommand {
 
 	@Override
-	public Object execute(Object parameter) {
+	public Object execute(Object parameter) throws AvfException {
 		return null;
 	}
 

@@ -20,7 +20,6 @@ package com.laudandjolynn.avf;
  * @email:htd0324@gmail.com
  * @date: 2013年10月9日
  */
-
 public class Application {
 	private String appName;
 	private String version;

@@ -18,7 +18,6 @@ package com.laudandjolynn.avf;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -37,13 +36,12 @@ import com.laudandjolynn.avf.annotation.ActionCmdDefine;
 import com.laudandjolynn.avf.cmd.ActionCmdWrapper;
 import com.laudandjolynn.avf.cmd.ActionCommand;
 import com.laudandjolynn.avf.cmd.Command;
-import com.laudandjolynn.avf.ex.AvfException;
 import com.laudandjolynn.avf.ex.ExceptionFactory;
 import com.laudandjolynn.avf.ex.NonUniqueIdentity;
 import com.laudandjolynn.avf.utils.ReflectionUtils;
 
 /**
- * 版本管理器，支持多应用
+ * 版本管理器, thread-safe
  * 
  * @author: Laud
  * @email: htd0324@gmail.com
@@ -56,8 +54,7 @@ public class VersionManager {
 	private Application application = null;
 	private String[] versions = null;
 	private Set<String> packages = null;
-	private boolean includeJars = false;
-	private final ConcurrentMap<String, ActionCmdWrapper> COMMAND_COLLECTION = new ConcurrentHashMap<String, ActionCmdWrapper>();
+	private ConcurrentMap<String, ActionCmdWrapper> COMMAND_COLLECTION = new ConcurrentHashMap<String, ActionCmdWrapper>();
 
 	/**
 	 * 构造函数
@@ -65,7 +62,7 @@ public class VersionManager {
 	 * @param app
 	 *            应用对象
 	 * @param versions
-	 *            应用版本号列表，从旧到新
+	 *            应用版本号列表
 	 */
 	protected VersionManager(Application app, String[] versions) {
 		this(app, versions, false);
@@ -77,40 +74,49 @@ public class VersionManager {
 	 * @param app
 	 *            应用对象
 	 * @param versions
-	 *            应用版本号列表，从旧到新
+	 *            应用版本号列表
 	 * @param includeJars
 	 *            jar包是否有需要版本管理的指令
 	 */
 	protected VersionManager(Application app, String[] versions,
 			boolean includeJars) {
-		this.application = app;
-		this.versions = versions;
-		this.includeJars = includeJars;
-		this.init(null);
+		this(app, versions, null, includeJars);
 	}
 
+	/**
+	 * 
+	 * @param app
+	 *            应用对象
+	 * @param versions
+	 *            应用版本号列表
+	 * @param packages
+	 *            需要版本管理的包名列表，如com.laudandjolynn.avf.action1
+	 * @param includeJars
+	 *            jar包是否有需要版本管理的指令
+	 */
 	protected VersionManager(Application app, String[] versions,
 			String[] packages, boolean includeJars) {
 		this.application = app;
 		this.versions = versions;
-		this.includeJars = includeJars;
-		this.init(packages);
+		this.init(packages, includeJars);
+	}
+
+	/**
+	 * 取得应用对象
+	 * 
+	 * @return
+	 */
+	public Application getApplication() {
+		return new Application(application.getAppName(),
+				application.getVersion());
 	}
 
 	/**
 	 * 初始化
 	 */
-	private void init(String[] packages) {
-		this.scan(packages);
+	private void init(String[] packages, boolean includeJars) {
+		this.scan(packages, includeJars);
 		this.charge();
-	}
-
-	public Application getApplication() {
-		return application;
-	}
-
-	public void setApplication(Application application) {
-		this.application = application;
 	}
 
 	/**
@@ -123,12 +129,8 @@ public class VersionManager {
 		if (StringUtil.isEmpty(currentVersion)) {
 			return null;
 		}
-		int size = versions == null ? 0 : versions.length;
-		if (size == 0) {
-			throw new AvfException("必须指定应用版本列表！");
-		}
 		String resultVersion = null;
-		for (int i = 0; i < size; i++) {
+		for (int i = 0, size = versions == null ? 0 : versions.length; i < size; i++) {
 			String version = versions[i];
 			if (version.equals(currentVersion)) {
 				int index = i - 1;
@@ -138,17 +140,13 @@ public class VersionManager {
 				break;
 			}
 		}
-		if (resultVersion == null) {
-			log.info("无法找到版本【" + currentVersion + "】的前一个版本，请确认其是否在应用版本列表【"
-					+ Arrays.deepToString(versions) + "】中声明。");
-		}
 		return resultVersion;
 	}
 
 	/**
 	 * 扫描注解
 	 */
-	private void scan(final String[] packages) {
+	private void scan(final String[] packages, final boolean includeJars) {
 		ClassScanner scanner = new ClassScanner() {
 
 			@Override
@@ -213,9 +211,9 @@ public class VersionManager {
 					appVersion, namespace, name);
 			String key = wrapper.getKey();
 			if (COMMAND_COLLECTION.containsKey(key)) {
-				throw ExceptionFactory.wrapException(
-						"重复声明的命令：" + wrapper.toString(), new NonUniqueIdentity(
-								key + "不唯一！"));
+				throw ExceptionFactory.wrapException("duplicate command: "
+						+ wrapper.toString(), new NonUniqueIdentity(
+						"duplicate identifier: " + key));
 			}
 
 			String localRefVersion = define.refVersion();
@@ -229,9 +227,9 @@ public class VersionManager {
 			String invokerName = method.getName();
 			wrapper.setInvokerName(invokerName);
 			wrapper.setActionType(clazz);
-			log.debug("found command：actionName【" + action.name()
-					+ "】, command【" + wrapper.toString() + "】, key【" + key
-					+ "】");
+			log.debug("found command：actionName[" + action.name()
+					+ "], command[" + wrapper.toString() + "], key[" + key
+					+ "]");
 			COMMAND_COLLECTION.put(key, wrapper);
 		}
 	}
@@ -331,8 +329,8 @@ public class VersionManager {
 				wrapper.setInvokerName(refWrapper.getInvokerName());
 				wrapper.setRefVerion(refWrapper.getVersion());
 				COMMAND_COLLECTION.put(key, wrapper);
-				log.info("found new command：" + wrapper.toString() + ", key 【"
-						+ key + "】");
+				log.info("found new command：" + wrapper.toString() + ", key["
+						+ key + "]");
 				return new ActionCommand(wrapper);
 			}
 		}

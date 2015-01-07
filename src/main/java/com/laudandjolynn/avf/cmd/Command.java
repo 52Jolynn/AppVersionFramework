@@ -15,6 +15,8 @@
  */
 package com.laudandjolynn.avf.cmd;
 
+import com.laudandjolynn.avf.ex.AvfException;
+
 /**
  * 
  * @author: Laud
@@ -29,6 +31,7 @@ public interface Command {
 	 * @param parameter
 	 *            请求参数
 	 * @return
+	 * @throws AvfException
 	 */
-	public Object execute(Object parameter);
+	public Object execute(Object parameter) throws AvfException;
 }

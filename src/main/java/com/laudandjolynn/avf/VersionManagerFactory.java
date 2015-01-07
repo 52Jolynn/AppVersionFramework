@@ -26,10 +26,11 @@ public class VersionManagerFactory {
 	 * 获取VersionManager
 	 * 
 	 * @param app
+	 *            当前应用對象
 	 * @param versions
-	 *            应用版本号列表，从旧到新
+	 *            应用版本号列表
 	 * @param includeJars
-	 *            jar包是否有需要版本管理的指令
+	 *            是否包含jar包中的需要版本管理的指令
 	 * 
 	 * @return
 	 */
@@ -42,12 +43,13 @@ public class VersionManagerFactory {
 	 * 获取VersionManager
 	 * 
 	 * @param app
+	 *            噹前應用對象
 	 * @param versions
-	 *            应用版本号列表，从旧到新
+	 *            应用版本号列表
 	 * @param packages
 	 *            需要版本管理的包名列表，如com.laudandjolynn.avf.action1
 	 * @param includeJars
-	 *            jar包是否有需要版本管理的指令
+	 *            是否包含jar包中的需要版本管理的指令
 	 * 
 	 * @return
 	 */

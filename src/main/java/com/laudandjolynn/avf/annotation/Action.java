@@ -22,9 +22,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * <pre>
- * 指令标记
- * </pre>
+ * 指令註解
  * 
  * @author: Laud
  * @email: htd0324@gmail.com

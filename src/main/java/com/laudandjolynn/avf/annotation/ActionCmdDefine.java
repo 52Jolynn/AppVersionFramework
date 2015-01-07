@@ -23,7 +23,7 @@ import java.lang.annotation.Target;
 
 /**
  * <pre>
- * 指令标记
+ * 指令注解
  * 用于标记某个方法为声明的指令
  * </pre>
  * 
@@ -52,7 +52,9 @@ public @interface ActionCmdDefine {
 	 * 
 	 * <pre>
 	 * 采用与java的package相同的命名标准。
-	 * 如com.laudandjolynn.avf.GetUser，其中GetUser是指令名称
+	 * 如com.laudandjolynn.avf.GetUser
+	 * 其中com.laudandjolynn.avf是命名空间
+	 * GetUser是指令名称
 	 * </pre>
 	 * 
 	 * @return

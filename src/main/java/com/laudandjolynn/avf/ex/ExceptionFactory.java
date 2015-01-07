@@ -25,13 +25,12 @@ package com.laudandjolynn.avf.ex;
  */
 public class ExceptionFactory {
 	/**
-	 * 将Exception包装成RuntimeException
+	 * 将Exception包装成AvfException
 	 * 
 	 * @param exception
 	 * @return
 	 */
-	public static RuntimeException wrapException(String message,
-			Exception exception) {
-		return new RuntimeException(message, exception);
+	public static AvfException wrapException(String message, Exception exception) {
+		return new AvfException(message, exception);
 	}
 }
